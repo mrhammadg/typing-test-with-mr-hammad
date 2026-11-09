@@ -1,0 +1,1218 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Typing Test - Modern Speed & Accuracy Platform</title>
+    <meta name="description" content="Improve your typing speed and accuracy with real-time statistics, daily challenges, dynamic practice drills, and interactive keyboard feedback.">
+    <meta name="theme-color" content="#0b0f19">
+
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f172a'/><path d='M25 35h50v8H25zm0 14h50v8H25zm0 14h30v8H25z' fill='%236366f1'/><path d='M60 63h15v8H60z' fill='%23a855f7'/></svg>">
+
+    <!-- Tailwind CSS CDN & Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#070a12',
+                            800: '#0b0f19',
+                            700: '#131b2e',
+                            600: '#1e293b'
+                        },
+                        neon: {
+                            blue: '#3b82f6',
+                            cyan: '#06b6d4',
+                            purple: '#a855f7',
+                            pink: '#ec4899'
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Neon Glow Effects */
+        .neon-glow-blue {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.35);
+        }
+        .neon-glow-purple {
+            box-shadow: 0 0 20px rgba(168, 85, 247, 0.35);
+        }
+        .neon-text-gradient {
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Character Highlight Styles */
+        .char {
+            position: relative;
+            transition: all 0.05s ease;
+            border-radius: 2px;
+        }
+        .char.correct {
+            color: #4ade80;
+            background-color: rgba(74, 222, 128, 0.1);
+        }
+        .char.incorrect {
+            color: #f87171;
+            background-color: rgba(248, 113, 113, 0.25);
+            text-decoration: underline;
+        }
+        .char.current {
+            background-color: rgba(99, 102, 241, 0.3);
+            border-bottom: 2px solid #818cf8;
+            animation: pulse-cursor 1.2s infinite;
+        }
+
+        @keyframes pulse-cursor {
+            0%, 100% { border-color: #818cf8; background-color: rgba(99, 102, 241, 0.35); }
+            50% { border-color: transparent; background-color: rgba(99, 102, 241, 0.15); }
+        }
+
+        /* Keyboard Key Visual Styling */
+        .key {
+            transition: all 0.08s ease;
+            user-select: none;
+        }
+        .key.active {
+            transform: translateY(2px) scale(0.96);
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%) !important;
+            color: #ffffff !important;
+            box-shadow: 0 0 12px rgba(139, 92, 246, 0.8);
+            border-color: #a855f7 !important;
+        }
+
+        /* Smooth glassmorphism */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .light .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+        }
+
+        /* Mode Tab Active styling */
+        .mode-btn.active, .time-btn.active, .level-btn.active {
+            background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+            color: white;
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.4);
+            border-color: transparent;
+        }
+
+        /* Smooth tab transition */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.25s ease-in-out;
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="bg-navy-900 text-slate-100 min-h-screen flex flex-col selection:bg-purple-500 selection:text-white transition-colors duration-300">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-40 glass-panel border-b border-slate-800/80">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="switchNav('home')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30">
+                    <i class="fa-solid fa-keyboard text-white text-lg"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-extrabold tracking-tight neon-text-gradient">Typing Test</span>
+                    <span class="hidden sm:inline-block text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 ml-1.5 rounded bg-indigo-500/20 text-indigo-400 border border-indigo-500/30">PRO</span>
+                </div>
+            </div>
+
+            <!-- Main Nav Links -->
+            <nav class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                <button onclick="switchNav('home')" id="nav-home" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                    <i class="fa-solid fa-house mr-1.5 text-xs text-indigo-400"></i> Home
+                </button>
+                <button onclick="switchNav('test')" id="nav-test" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                    <i class="fa-solid fa-bolt mr-1.5 text-xs text-blue-400"></i> Typing Test
+                </button>
+                <button onclick="switchNav('practice')" id="nav-practice" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                    <i class="fa-solid fa-bullseye mr-1.5 text-xs text-purple-400"></i> Practice
+                </button>
+                <button onclick="switchNav('daily')" id="nav-daily" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                    <i class="fa-solid fa-calendar-check mr-1.5 text-xs text-pink-400"></i> Daily Challenge
+                </button>
+                <button onclick="switchNav('stats')" id="nav-stats" class="nav-link px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-slate-800/60 transition-colors">
+                    <i class="fa-solid fa-trophy mr-1.5 text-xs text-amber-400"></i> Leaderboard
+                </button>
+            </nav>
+
+            <!-- Quick Controls (Audio, Theme, PWA Install) -->
+            <div class="flex items-center space-x-2 sm:space-x-3">
+                <!-- Sound Toggle -->
+                <button id="soundToggleBtn" onclick="toggleSound()" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700/80 transition" title="Toggle Keyboard Audio">
+                    <i id="soundIcon" class="fa-solid fa-volume-high text-indigo-400"></i>
+                </button>
+
+                <!-- Theme Toggle -->
+                <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white hover:bg-slate-700/80 transition" title="Toggle Theme Mode">
+                    <i id="themeIcon" class="fa-solid fa-moon text-purple-400"></i>
+                </button>
+
+                <!-- PWA Install Button (Hidden by default, shown when install prompt fires) -->
+                <button id="pwaInstallBtn" onclick="installPWA()" class="hidden items-center space-x-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white text-xs font-semibold shadow-lg hover:from-blue-500 hover:to-indigo-500 transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span class="hidden sm:inline">Install App</span>
+                </button>
+
+                <!-- Mobile Menu Button -->
+                <button onclick="toggleMobileMenu()" class="md:hidden p-2.5 rounded-xl bg-slate-800/80 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Drawer Navigation -->
+        <div id="mobileMenu" class="hidden md:hidden border-t border-slate-800 bg-navy-900/95 px-4 pt-2 pb-4 space-y-2">
+            <button onclick="switchNav('home'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-house mr-2 text-indigo-400"></i> Home</button>
+            <button onclick="switchNav('test'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-bolt mr-2 text-blue-400"></i> Typing Test</button>
+            <button onclick="switchNav('practice'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-bullseye mr-2 text-purple-400"></i> Practice Drills</button>
+            <button onclick="switchNav('daily'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-calendar-check mr-2 text-pink-400"></i> Daily Challenge</button>
+            <button onclick="switchNav('stats'); toggleMobileMenu()" class="w-full text-left px-3 py-2 rounded-lg text-sm text-slate-300 hover:bg-slate-800"><i class="fa-solid fa-trophy mr-2 text-amber-400"></i> High Scores</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex flex-col justify-center">
+
+        <!-- TAB 1: HOME PAGE HERO SECTION -->
+        <section id="tab-home" class="tab-content active space-y-12 py-4">
+            <!-- Hero Banner -->
+            <div class="text-center space-y-6 max-w-3xl mx-auto pt-6">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-300 text-xs font-semibold tracking-wide uppercase">
+                    <i class="fa-solid fa-bolt text-yellow-400"></i>
+                    <span>Next-Gen Speed Typing Platform</span>
+                </div>
+                <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight leading-tight">
+                    Improve Your <br class="hidden sm:inline">
+                    <span class="neon-text-gradient">Typing Speed & Precision</span>
+                </h1>
+                <p class="text-lg sm:text-xl text-slate-400 font-light max-w-2xl mx-auto">
+                    Practice daily. Type faster. Achieve more. Master your keyboard with real-time analytics, instant audio feedback, and tailored practice modules.
+                </p>
+                <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                    <button onclick="switchNav('test')" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white font-bold text-lg shadow-xl shadow-indigo-600/30 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center space-x-3">
+                        <span>Start Typing Test</span>
+                        <i class="fa-solid fa-arrow-right text-sm"></i>
+                    </button>
+                    <button onclick="switchNav('practice')" class="w-full sm:w-auto px-8 py-4 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-semibold text-lg border border-slate-700 transition flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-graduation-cap text-indigo-400"></i>
+                        <span>Practice Drills</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-8">
+                <!-- Card 1 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-3 border-t-2 border-t-blue-500/60 hover:translate-y-[-4px] transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 text-xl font-bold">
+                        <i class="fa-solid fa-gauge-high"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Live Analytics</h3>
+                    <p class="text-sm text-slate-400">Track WPM, CPM, precision percentage, and mistake counts dynamically as you type each key.</p>
+                </div>
+                <!-- Card 2 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-3 border-t-2 border-t-purple-500/60 hover:translate-y-[-4px] transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 text-xl font-bold">
+                        <i class="fa-solid fa-keyboard"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Keyboard Visualizer</h3>
+                    <p class="text-sm text-slate-400">Interactive neon virtual layout showing active keystrokes and finger placement highlights.</p>
+                </div>
+                <!-- Card 3 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-3 border-t-2 border-t-pink-500/60 hover:translate-y-[-4px] transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-pink-500/10 border border-pink-500/20 flex items-center justify-center text-pink-400 text-xl font-bold">
+                        <i class="fa-solid fa-calendar-star"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Daily Challenges</h3>
+                    <p class="text-sm text-slate-400">Complete fresh daily typing exercises to earn high scores and build persistent muscle memory.</p>
+                </div>
+                <!-- Card 4 -->
+                <div class="glass-panel p-6 rounded-2xl space-y-3 border-t-2 border-t-cyan-500/60 hover:translate-y-[-4px] transition-all duration-300">
+                    <div class="w-12 h-12 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400 text-xl font-bold">
+                        <i class="fa-solid fa-mobile-screen"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">Installable PWA</h3>
+                    <p class="text-sm text-slate-400">Works seamlessly offline on Android, Chromebook, Windows & macOS with full web app capabilities.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: TYPING TEST MAIN ENGINE -->
+        <section id="tab-test" class="tab-content space-y-6">
+            <!-- Test Control Bar -->
+            <div class="glass-panel p-4 rounded-2xl flex flex-wrap items-center justify-between gap-4">
+                <!-- Mode Selection -->
+                <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                    <button onclick="setTestMode('paragraph')" id="mode-paragraph" class="mode-btn active px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">Paragraphs</button>
+                    <button onclick="setTestMode('quote')" id="mode-quote" class="mode-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">Quotes</button>
+                    <button onclick="setTestMode('code')" id="mode-code" class="mode-btn px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">Code Drills</button>
+                </div>
+
+                <!-- Time Duration Selector -->
+                <div class="flex items-center bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+                    <span class="text-xs font-semibold text-slate-500 uppercase px-2 hidden sm:inline"><i class="fa-regular fa-clock mr-1"></i> Time:</span>
+                    <button onclick="setDuration(15)" id="time-15" class="time-btn active px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">15s</button>
+                    <button onclick="setDuration(30)" id="time-30" class="time-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">30s</button>
+                    <button onclick="setDuration(60)" id="time-60" class="time-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">60s</button>
+                    <button onclick="setDuration(120)" id="time-120" class="time-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">2m</button>
+                    <button onclick="setDuration(300)" id="time-300" class="time-btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-300 transition">5m</button>
+                </div>
+
+                <!-- Action Controls (Fullscreen, Reset) -->
+                <div class="flex items-center space-x-2">
+                    <button onclick="toggleFullscreen()" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition" title="Toggle Fullscreen">
+                        <i class="fa-solid fa-expand"></i>
+                    </button>
+                    <button onclick="resetTest()" class="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600/30 text-indigo-400 border border-indigo-500/30 text-xs font-semibold transition flex items-center space-x-1.5">
+                        <i class="fa-solid fa-rotate-right"></i>
+                        <span>Restart (Tab+Enter)</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Real-Time Statistics Header Bar -->
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 sm:gap-4">
+                <div class="glass-panel p-4 rounded-xl text-center border-b-2 border-b-indigo-500">
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Timer</div>
+                    <div id="stat-timer" class="text-3xl font-extrabold text-indigo-400 font-mono mt-1">30s</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border-b-2 border-b-blue-500">
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">WPM</div>
+                    <div id="stat-wpm" class="text-3xl font-extrabold text-blue-400 font-mono mt-1">0</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border-b-2 border-b-purple-500">
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">CPM</div>
+                    <div id="stat-cpm" class="text-3xl font-extrabold text-purple-400 font-mono mt-1">0</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border-b-2 border-b-emerald-500">
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Accuracy</div>
+                    <div id="stat-accuracy" class="text-3xl font-extrabold text-emerald-400 font-mono mt-1">100%</div>
+                </div>
+                <div class="glass-panel p-4 rounded-xl text-center border-b-2 border-b-rose-500 col-span-2 sm:col-span-1">
+                    <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Mistakes</div>
+                    <div id="stat-mistakes" class="text-3xl font-extrabold text-rose-400 font-mono mt-1">0</div>
+                </div>
+            </div>
+
+            <!-- Progress Indicator Bar -->
+            <div class="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden">
+                <div id="progressBar" class="bg-gradient-to-r from-blue-500 to-purple-500 h-full w-0 transition-all duration-200"></div>
+            </div>
+
+            <!-- Main Typing Canvas Display -->
+            <div id="typingArea" onclick="focusTypingInput()" class="glass-panel p-6 sm:p-8 rounded-2xl relative cursor-text min-h-[180px] sm:min-h-[220px] flex items-center justify-center border border-indigo-500/20 shadow-2xl overflow-hidden group">
+                <!-- Overlay instructions for mobile / focus -->
+                <div id="focusPrompt" class="absolute inset-0 bg-navy-900/70 backdrop-blur-sm flex items-center justify-center text-slate-300 font-medium z-10 transition-opacity duration-200 opacity-0 pointer-events-none">
+                    <span class="bg-indigo-600 px-4 py-2 rounded-xl text-white shadow-lg"><i class="fa-solid fa-pointer mr-2"></i> Click here or start typing to focus</span>
+                </div>
+
+                <!-- Hidden Input element for seamlessly catching strokes -->
+                <input type="text" id="hiddenInput" class="absolute opacity-0 pointer-events-none -top-10 left-0" autocomplete="off" capitalize="none" spellcheck="false">
+
+                <!-- Dynamic Rendered Text Container -->
+                <div id="wordsContainer" class="font-mono text-lg sm:text-2xl leading-relaxed sm:leading-loose text-slate-400 select-none w-full max-h-[180px] overflow-hidden break-words">
+                    <!-- Text chars populated dynamically by JS -->
+                </div>
+            </div>
+
+            <!-- Interactive Keyboard Visualizer -->
+            <div class="glass-panel p-4 sm:p-6 rounded-2xl space-y-2 select-none border border-slate-800 max-w-4xl mx-auto">
+                <div class="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2 text-center flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-keyboard text-indigo-400"></i>
+                    <span>Virtual Visualizer</span>
+                </div>
+                
+                <!-- Key Rows -->
+                <div class="space-y-1.5 font-mono text-xs sm:text-sm">
+                    <!-- Row 1 -->
+                    <div class="flex justify-center gap-1 sm:gap-1.5">
+                        <div data-key="`" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">~</div>
+                        <div data-key="1" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">1</div>
+                        <div data-key="2" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">2</div>
+                        <div data-key="3" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">3</div>
+                        <div data-key="4" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">4</div>
+                        <div data-key="5" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">5</div>
+                        <div data-key="6" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">6</div>
+                        <div data-key="7" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">7</div>
+                        <div data-key="8" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">8</div>
+                        <div data-key="9" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">9</div>
+                        <div data-key="0" class="key px-2 sm:px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">0</div>
+                        <div data-key="Backspace" class="key px-3 sm:px-4 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs flex-grow">Backspace</div>
+                    </div>
+                    <!-- Row 2 -->
+                    <div class="flex justify-center gap-1 sm:gap-1.5">
+                        <div data-key="Tab" class="key px-3 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs">Tab</div>
+                        <div data-key="q" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">q</div>
+                        <div data-key="w" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">w</div>
+                        <div data-key="e" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">e</div>
+                        <div data-key="r" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">r</div>
+                        <div data-key="t" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">t</div>
+                        <div data-key="y" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">y</div>
+                        <div data-key="u" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">u</div>
+                        <div data-key="i" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">i</div>
+                        <div data-key="o" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">o</div>
+                        <div data-key="p" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">p</div>
+                    </div>
+                    <!-- Row 3 -->
+                    <div class="flex justify-center gap-1 sm:gap-1.5">
+                        <div data-key="CapsLock" class="key px-3 sm:px-4 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs">Caps</div>
+                        <div data-key="a" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">a</div>
+                        <div data-key="s" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">s</div>
+                        <div data-key="d" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">d</div>
+                        <div data-key="f" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">f</div>
+                        <div data-key="g" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">g</div>
+                        <div data-key="h" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">h</div>
+                        <div data-key="j" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">j</div>
+                        <div data-key="k" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">k</div>
+                        <div data-key="l" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">l</div>
+                        <div data-key="Enter" class="key px-4 sm:px-5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs flex-grow">Enter</div>
+                    </div>
+                    <!-- Row 4 -->
+                    <div class="flex justify-center gap-1 sm:gap-1.5">
+                        <div data-key="Shift" class="key px-4 sm:px-5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs">Shift</div>
+                        <div data-key="z" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">z</div>
+                        <div data-key="x" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">x</div>
+                        <div data-key="c" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">c</div>
+                        <div data-key="v" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">v</div>
+                        <div data-key="b" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">b</div>
+                        <div data-key="n" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">n</div>
+                        <div data-key="m" class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-200 text-center font-bold uppercase">m</div>
+                        <div data-key="," class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">,</div>
+                        <div data-key="." class="key px-2.5 sm:px-3.5 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-300 text-center font-bold">.</div>
+                    </div>
+                    <!-- Row 5 -->
+                    <div class="flex justify-center gap-1 sm:gap-1.5">
+                        <div data-key=" " class="key px-12 sm:px-24 py-2 bg-slate-800 border border-slate-700/80 rounded-lg text-slate-400 text-center font-bold text-xs">Spacebar</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: PRACTICE SECTION -->
+        <section id="tab-practice" class="tab-content space-y-6">
+            <div class="text-center space-y-2 max-w-2xl mx-auto">
+                <h2 class="text-3xl font-extrabold text-white">Targeted Practice Drills</h2>
+                <p class="text-sm text-slate-400">Select a skill tier to build muscle memory with curated exercises.</p>
+            </div>
+
+            <!-- Practice Level Buttons -->
+            <div class="flex justify-center gap-3">
+                <button onclick="setPracticeLevel('beginner')" id="level-beginner" class="level-btn active px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-sm transition">
+                    <i class="fa-solid fa-seedling mr-1.5 text-emerald-400"></i> Beginner
+                </button>
+                <button onclick="setPracticeLevel('intermediate')" id="level-intermediate" class="level-btn px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-sm transition">
+                    <i class="fa-solid fa-fire mr-1.5 text-amber-400"></i> Intermediate
+                </button>
+                <button onclick="setPracticeLevel('advanced')" id="level-advanced" class="level-btn px-5 py-2.5 rounded-xl border border-slate-700 font-semibold text-sm transition">
+                    <i class="fa-solid fa-bolt mr-1.5 text-rose-400"></i> Advanced Punctuation
+                </button>
+            </div>
+
+            <!-- Drill Selection Cards Container -->
+            <div id="practiceDrillGrid" class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+                <!-- Dynamically filled by JS -->
+            </div>
+        </section>
+
+        <!-- TAB 4: DAILY CHALLENGE -->
+        <section id="tab-daily" class="tab-content space-y-6">
+            <div class="glass-panel p-8 rounded-3xl text-center space-y-6 max-w-3xl mx-auto border border-pink-500/30">
+                <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 text-xs font-bold uppercase tracking-wider">
+                    <i class="fa-solid fa-calendar-day"></i>
+                    <span id="dailyDateStr">Daily Challenge</span>
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">Today's Precision Challenge</h2>
+                <p class="text-slate-300 max-w-xl mx-auto leading-relaxed" id="dailyDescription">
+                    Complete today's official challenge paragraph with high accuracy to record your spot on the daily leaderboard.
+                </p>
+
+                <div id="dailyStatusCard" class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 max-w-md mx-auto text-sm text-slate-400">
+                    <i class="fa-solid fa-circle-info text-indigo-400 mr-2"></i> Challenge status: <span id="dailyCompletedStatus" class="font-bold text-amber-400">Not Completed Today</span>
+                </div>
+
+                <button onclick="startDailyChallenge()" class="px-8 py-3.5 rounded-xl bg-gradient-to-r from-pink-500 via-purple-600 to-indigo-600 text-white font-bold text-lg shadow-lg hover:scale-105 transition">
+                    Start Today's Challenge
+                </button>
+            </div>
+        </section>
+
+        <!-- TAB 5: LEADERBOARD & STATS -->
+        <section id="tab-stats" class="tab-content space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Local Performance Leaderboard</h2>
+                    <p class="text-xs text-slate-400">Your top typing test scores stored locally in your browser.</p>
+                </div>
+                <button onclick="clearLeaderboard()" class="px-4 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 text-xs font-semibold transition">
+                    <i class="fa-solid fa-trash-can mr-1.5"></i> Clear High Scores
+                </button>
+            </div>
+
+            <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm text-slate-300">
+                        <thead class="bg-slate-900/90 text-xs uppercase text-slate-400 font-semibold border-b border-slate-800">
+                            <tr>
+                                <th class="px-6 py-3.5"># Rank</th>
+                                <th class="px-6 py-3.5">WPM</th>
+                                <th class="px-6 py-3.5">CPM</th>
+                                <th class="px-6 py-3.5">Accuracy</th>
+                                <th class="px-6 py-3.5">Mode</th>
+                                <th class="px-6 py-3.5">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leaderboardBody" class="divide-y divide-slate-800/60">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TEST RESULTS MODAL -->
+    <div id="resultsModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-navy-900/80 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+        <div class="glass-panel p-6 sm:p-8 rounded-3xl max-w-lg w-full space-y-6 border border-indigo-500/40 shadow-2xl transform scale-95 transition-all duration-300" id="resultsCard">
+            <!-- Modal Header Badge -->
+            <div class="text-center space-y-2">
+                <div id="rankBadge" class="inline-block px-4 py-1.5 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-extrabold text-xs uppercase tracking-widest shadow-md">
+                    Typing Master
+                </div>
+                <h2 class="text-3xl font-extrabold text-white">Test Complete!</h2>
+                <p id="performanceMsg" class="text-sm text-slate-300">Great effort! You typed with high speed and precision.</p>
+            </div>
+
+            <!-- Stats Grid -->
+            <div class="grid grid-cols-2 gap-3 sm:gap-4">
+                <div class="p-4 rounded-2xl bg-slate-900/90 border border-blue-500/30 text-center">
+                    <span class="text-xs text-slate-400 font-medium">Speed (WPM)</span>
+                    <div id="res-wpm" class="text-4xl font-extrabold text-blue-400 font-mono mt-1">72</div>
+                </div>
+                <div class="p-4 rounded-2xl bg-slate-900/90 border border-emerald-500/30 text-center">
+                    <span class="text-xs text-slate-400 font-medium">Accuracy</span>
+                    <div id="res-accuracy" class="text-4xl font-extrabold text-emerald-400 font-mono mt-1">98%</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+                    <span class="text-xs text-slate-400">Characters / Min</span>
+                    <div id="res-cpm" class="text-lg font-bold text-purple-400 font-mono">360</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-900/60 border border-slate-800 text-center">
+                    <span class="text-xs text-slate-400">Total Mistakes</span>
+                    <div id="res-mistakes" class="text-lg font-bold text-rose-400 font-mono">3</div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-3 pt-2">
+                <button onclick="closeResultsModal(); resetTest()" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold text-sm shadow-lg hover:from-blue-500 hover:to-indigo-500 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Try Again</span>
+                </button>
+                <button onclick="shareResults()" class="w-full py-3.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-share-nodes text-purple-400"></i>
+                    <span>Share Result</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 px-4 py-3 rounded-xl bg-slate-800 border border-indigo-500/40 text-slate-100 text-sm font-semibold shadow-2xl flex items-center space-x-2 transform translate-y-20 opacity-0 transition-all duration-300">
+        <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toastMsg">Action completed successfully</span>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="glass-panel border-t border-slate-800/80 py-6 mt-12">
+        <div class="max-w-7xl mx-auto px-4 text-center space-y-2">
+            <p class="text-xs text-slate-400">
+                &copy; Typing Test Platform. Designed for maximum typing performance & accuracy.
+            </p>
+            <p class="text-[11px] text-slate-500 font-mono">
+                Keyboard Shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Tab + Enter</kbd> to restart test | <kbd class="px-1.5 py-0.5 rounded bg-slate-800 border border-slate-700">Esc</kbd> to exit modal
+            </p>
+        </div>
+    </footer>
+
+    <!-- MAIN JAVASCRIPT ENGINE -->
+    <script>
+        /* ==========================================================================
+           TEXT PARAGRAPHS & DATA PRESETS
+           ========================================================================== */
+        const PRESET_PARAGRAPHS = [
+            "The quick brown fox jumps over the lazy dog. Continuous practice is the key to mastering high-speed typing accuracy. Keep your hands relaxed, maintain good posture, and focus on clean keystrokes without looking down at the keys.",
+            "Technology empowers developers and creators to design modern web applications with seamless interactive experiences. Speed and accuracy combined form the true hallmark of digital productivity.",
+            "Algorithm optimization allows web platforms to calculate real-time typing metrics smoothly. By practicing daily, your finger memory sharpens, reducing errors and increasing your words per minute effortlessly.",
+            "Minimalist dark aesthetics provide a comfortable visual experience during long coding sessions. Focused attention on precision yields greater productivity across all software engineering workflows."
+        ];
+
+        const PRESET_QUOTES = [
+            "Simplicity is the soul of efficiency. Focus on accuracy first, and typing speed will naturally follow with consistent daily effort.",
+            "Success in mastering keyboard dexterity comes from rhythmic discipline and steady perseverance over time.",
+            "Code is like humor. When you have to explain it, it's bad. Make your keystrokes precise and elegant."
+        ];
+
+        const PRESET_CODE = [
+            "function calculateWPM(totalChars, timeElapsed) { const words = totalChars / 5; return Math.round((words / timeElapsed) * 60); }",
+            "const system = { name: 'Typing Test', version: '2.0.0', pwaEnabled: true, themes: ['dark', 'light'] };",
+            "document.addEventListener('keydown', (event) => { if (event.key === 'Tab') event.preventDefault(); });"
+        ];
+
+        const PRACTICE_DRILLS = {
+            beginner: [
+                { title: "Home Row Mastery", desc: "Basic home row letters (a s d f j k l ;)", text: "asdf jkl; asdf jkl; a s d f j k l ; asdf jkl; adfj skl;" },
+                { title: "Simple Words", desc: "Common short words for early accuracy", text: "the cat sat on the mat and had a nap in the sun all day long" },
+                { title: "Number Row Drill", desc: "Get comfortable with top-row numbers", text: "123 456 789 012 345 678 901 234 567 890" }
+            ],
+            intermediate: [
+                { title: "Common Sentences", desc: "Standard sentence structures and capitalization", text: "Every swift movement on the keyboard requires focus and steady precision." },
+                { title: "Frequent Vocabulary", desc: "Most typed vocabulary words in daily communications", text: "about system business service product user network process data system code application design" },
+                { title: "Punctuation Flow", desc: "Sentences with commas, periods, and quotes", text: "Life is short, type fast. Remember: practice doesn't make perfect, perfect practice does." }
+            ],
+            advanced: [
+                { title: "Code Syntax Drill", desc: "Special symbols, brackets, and code syntax", text: "if (user.wpm > 80 && user.accuracy >= 98) { console.log('Pro Typist!'); }" },
+                { title: "Complex Punctuation", desc: "Advanced symbols (#, $, %, &, *, ~)", text: "Price: $99.99 (Discounted @ 20% off!). Contact support@typingtest.app #SpeedTyping" },
+                { title: "High-Speed Vocabulary", desc: "Challenging multisyllabic terms", text: "Synchronous asynchronous architecture optimization implementation encapsulation polymorphism." }
+            ]
+        };
+
+        /* ==========================================================================
+           GLOBAL APPLICATION STATE
+           ========================================================================== */
+        let state = {
+            mode: 'paragraph', // paragraph, quote, code, daily, practice
+            duration: 30, // seconds
+            timeLeft: 30,
+            timer: null,
+            isTesting: false,
+            textToType: '',
+            charIndex: 0,
+            mistakes: 0,
+            correctChars: 0,
+            totalTypedChars: 0,
+            soundEnabled: true,
+            theme: 'dark',
+            dailyCompleted: false,
+            audioCtx: null
+        };
+
+        /* ==========================================================================
+           INITIALIZATION & EVENT LISTENERS
+           ========================================================================== */
+        window.addEventListener('DOMContentLoaded', () => {
+            initApp();
+            initPWA();
+        });
+
+        function initApp() {
+            // Load saved settings from localStorage
+            if (localStorage.getItem('typing_theme')) {
+                state.theme = localStorage.getItem('typing_theme');
+                if (state.theme === 'light') applyTheme('light');
+            }
+            if (localStorage.getItem('typing_sound') !== null) {
+                state.soundEnabled = localStorage.getItem('typing_sound') === 'true';
+                updateSoundIcon();
+            }
+
+            // Keyboard Listeners
+            const hiddenInput = document.getElementById('hiddenInput');
+            hiddenInput.addEventListener('input', handleTypingInput);
+            document.addEventListener('keydown', handleGlobalKeyDown);
+            document.addEventListener('keyup', handleGlobalKeyUp);
+
+            // Set up initial practice drills grid
+            renderPracticeDrills('beginner');
+
+            // Set up daily challenge info
+            initDailyChallenge();
+
+            // Load high scores
+            renderLeaderboard();
+
+            // Prepare first test text
+            resetTest();
+        }
+
+        /* ==========================================================================
+           NAVIGATION & UI TAB SWITCHING
+           ========================================================================== */
+        function switchNav(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('bg-slate-800', 'text-white');
+                link.classList.add('text-slate-300');
+            });
+
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            const targetNav = document.getElementById(`nav-${tabName}`);
+
+            if (targetTab) targetTab.classList.add('active');
+            if (targetNav) {
+                targetNav.classList.add('bg-slate-800', 'text-white');
+            }
+
+            if (tabName === 'test') {
+                setTimeout(focusTypingInput, 100);
+            }
+        }
+
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+
+        /* ==========================================================================
+           TEST ENGINE LOGIC
+           ========================================================================== */
+        function setTestMode(mode) {
+            state.mode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById(`mode-${mode}`);
+            if (btn) btn.classList.add('active');
+            resetTest();
+        }
+
+        function setDuration(seconds) {
+            state.duration = seconds;
+            state.timeLeft = seconds;
+            document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById(`time-${seconds}`);
+            if (btn) btn.classList.add('active');
+            resetTest();
+        }
+
+        function resetTest() {
+            clearInterval(state.timer);
+            state.isTesting = false;
+            state.timeLeft = state.duration;
+            state.charIndex = 0;
+            state.mistakes = 0;
+            state.correctChars = 0;
+            state.totalTypedChars = 0;
+
+            // UI updates
+            document.getElementById('stat-timer').textContent = `${state.timeLeft}s`;
+            document.getElementById('stat-wpm').textContent = '0';
+            document.getElementById('stat-cpm').textContent = '0';
+            document.getElementById('stat-accuracy').textContent = '100%';
+            document.getElementById('stat-mistakes').textContent = '0';
+            document.getElementById('progressBar').style.width = '0%';
+
+            // Pick sample text based on mode
+            if (state.mode === 'paragraph') {
+                state.textToType = PRESET_PARAGRAPHS[Math.floor(Math.random() * PRESET_PARAGRAPHS.length)];
+            } else if (state.mode === 'quote') {
+                state.textToType = PRESET_QUOTES[Math.floor(Math.random() * PRESET_QUOTES.length)];
+            } else if (state.mode === 'code') {
+                state.textToType = PRESET_CODE[Math.floor(Math.random() * PRESET_CODE.length)];
+            }
+
+            renderText();
+            const hiddenInput = document.getElementById('hiddenInput');
+            hiddenInput.value = '';
+            focusTypingInput();
+        }
+
+        function renderText() {
+            const container = document.getElementById('wordsContainer');
+            container.innerHTML = '';
+            state.textToType.split('').forEach((char, index) => {
+                const charSpan = document.createElement('span');
+                charSpan.classList.add('char');
+                if (index === 0) charSpan.classList.add('current');
+                charSpan.innerText = char;
+                container.appendChild(charSpan);
+            });
+        }
+
+        function focusTypingInput() {
+            const hiddenInput = document.getElementById('hiddenInput');
+            hiddenInput.focus();
+            document.getElementById('focusPrompt').style.opacity = '0';
+        }
+
+        function startTestTimer() {
+            state.isTesting = true;
+            state.timer = setInterval(() => {
+                state.timeLeft--;
+                document.getElementById('stat-timer').textContent = `${state.timeLeft}s`;
+
+                // Update progress bar
+                const progressPct = ((state.duration - state.timeLeft) / state.duration) * 100;
+                document.getElementById('progressBar').style.width = `${progressPct}%`;
+
+                // Calculate Live WPM/CPM
+                calculateLiveStats();
+
+                if (state.timeLeft <= 0) {
+                    finishTest();
+                }
+            }, 1000);
+        }
+
+        function handleTypingInput(e) {
+            if (!state.isTesting && state.timeLeft > 0 && e.target.value.length > 0) {
+                startTestTimer();
+            }
+
+            const characters = document.querySelectorAll('.char');
+            const typedVal = e.target.value;
+            const currentTypedChar = typedVal[typedVal.length - 1];
+
+            // Sound feedback
+            playKeyClickSound();
+
+            if (state.charIndex < characters.length) {
+                const targetChar = state.textToType[state.charIndex];
+
+                if (typedVal.length < state.charIndex) {
+                    // Backspace handled
+                    characters[state.charIndex].classList.remove('current', 'correct', 'incorrect');
+                    state.charIndex = typedVal.length;
+                    characters[state.charIndex].className = 'char current';
+                } else {
+                    if (currentTypedChar === targetChar) {
+                        characters[state.charIndex].classList.remove('current');
+                        characters[state.charIndex].classList.add('correct');
+                        state.correctChars++;
+                    } else {
+                        characters[state.charIndex].classList.remove('current');
+                        characters[state.charIndex].classList.add('incorrect');
+                        state.mistakes++;
+                    }
+
+                    state.totalTypedChars++;
+                    state.charIndex++;
+
+                    if (state.charIndex < characters.length) {
+                        characters[state.charIndex].classList.add('current');
+                        // Auto scroll container line into view if needed
+                        characters[state.charIndex].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else {
+                        // Reached end of text
+                        finishTest();
+                    }
+                }
+            }
+            calculateLiveStats();
+        }
+
+        function calculateLiveStats() {
+            const timeElapsedInMinutes = (state.duration - state.timeLeft) / 60 || 1/60;
+            // Standard WPM formula: (Correct Characters / 5) / Time Elapsed in Minutes
+            const netWPM = Math.max(0, Math.round((state.correctChars / 5) / timeElapsedInMinutes));
+            const cpm = Math.round(state.correctChars / timeElapsedInMinutes);
+            const accuracy = state.totalTypedChars > 0 
+                ? Math.round((state.correctChars / state.totalTypedChars) * 100) 
+                : 100;
+
+            document.getElementById('stat-wpm').textContent = netWPM;
+            document.getElementById('stat-cpm').textContent = cpm;
+            document.getElementById('stat-accuracy').textContent = `${accuracy}%`;
+            document.getElementById('stat-mistakes').textContent = state.mistakes;
+        }
+
+        function finishTest() {
+            clearInterval(state.timer);
+            state.isTesting = false;
+
+            const timeElapsed = state.duration - state.timeLeft || 1;
+            const finalWPM = Math.max(0, Math.round((state.correctChars / 5) / (timeElapsed / 60)));
+            const finalCPM = Math.round(state.correctChars / (timeElapsed / 60));
+            const finalAccuracy = state.totalTypedChars > 0 ? Math.round((state.correctChars / state.totalTypedChars) * 100) : 100;
+
+            // Display in Modal
+            document.getElementById('res-wpm').textContent = finalWPM;
+            document.getElementById('res-cpm').textContent = finalCPM;
+            document.getElementById('res-accuracy').textContent = `${finalAccuracy}%`;
+            document.getElementById('res-mistakes').textContent = state.mistakes;
+
+            // Determine Badge & Rank Message
+            let badge = "Novice Typist";
+            let msg = "Keep practicing regularly to build your muscle memory!";
+            if (finalWPM >= 90) { badge = "Typing Wizard 🧙‍♂️"; msg = "Astonishing speed! You are in the top 1% of typists."; }
+            else if (finalWPM >= 70) { badge = "Master Typist ⚡"; msg = "Outstanding speed and fluency!"; }
+            else if (finalWPM >= 50) { badge = "Fast Typist 🚀"; msg = "Great pace! You type well above average."; }
+            else if (finalWPM >= 30) { badge = "Intermediate 📈"; msg = "Solid performance. Work on accuracy for higher speed."; }
+
+            document.getElementById('rankBadge').textContent = badge;
+            document.getElementById('performanceMsg').textContent = msg;
+
+            // Save to Leaderboard
+            saveScore(finalWPM, finalCPM, finalAccuracy, state.mode);
+
+            // If daily challenge mode
+            if (state.mode === 'daily') {
+                localStorage.setItem(`daily_done_${getDailySeed()}`, 'true');
+                document.getElementById('dailyCompletedStatus').textContent = 'Completed Today! 🎉';
+                document.getElementById('dailyCompletedStatus').className = 'font-bold text-emerald-400';
+            }
+
+            openResultsModal();
+        }
+
+        /* ==========================================================================
+           MODAL & LEADERBOARD MANAGEMENT
+           ========================================================================== */
+        function openResultsModal() {
+            const modal = document.getElementById('resultsModal');
+            const card = document.getElementById('resultsCard');
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-95');
+            card.classList.add('scale-100');
+        }
+
+        function closeResultsModal() {
+            const modal = document.getElementById('resultsModal');
+            const card = document.getElementById('resultsCard');
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            card.classList.remove('scale-100');
+            card.classList.add('scale-95');
+        }
+
+        function shareResults() {
+            const wpm = document.getElementById('res-wpm').textContent;
+            const acc = document.getElementById('res-accuracy').textContent;
+            const text = `⌨️ Typing Test Result: ${wpm} WPM with ${acc} accuracy! Check out your typing speed at Typing Test PWA.`;
+
+            if (navigator.clipboard) {
+                document.execCommand('copy');
+                showToast("Results copied to clipboard!", "fa-circle-check");
+            } else {
+                showToast(`Share: ${text}`, "fa-share-nodes");
+            }
+        }
+
+        function saveScore(wpm, cpm, accuracy, mode) {
+            const scores = JSON.parse(localStorage.getItem('typing_scores') || '[]');
+            const newEntry = {
+                wpm,
+                cpm,
+                accuracy,
+                mode: mode.toUpperCase(),
+                date: new Date().toLocaleDateString()
+            };
+            scores.push(newEntry);
+            scores.sort((a, b) => b.wpm - a.wpm); // Sort descending by WPM
+            localStorage.setItem('typing_scores', JSON.stringify(scores.slice(0, 20)));
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboardBody');
+            const scores = JSON.parse(localStorage.getItem('typing_scores') || '[]');
+            
+            if (scores.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-4 text-center text-slate-500 italic">No scores recorded yet. Complete a test to see your rank!</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = scores.map((s, index) => `
+                <tr class="hover:bg-slate-800/40 transition">
+                    <td class="px-6 py-3.5 font-bold ${index === 0 ? 'text-amber-400' : 'text-slate-400'}">#${index + 1}</td>
+                    <td class="px-6 py-3.5 font-mono font-bold text-blue-400">${s.wpm}</td>
+                    <td class="px-6 py-3.5 font-mono text-purple-400">${s.cpm}</td>
+                    <td class="px-6 py-3.5 font-mono text-emerald-400">${s.accuracy}%</td>
+                    <td class="px-6 py-3.5 text-xs"><span class="px-2 py-1 rounded bg-slate-800 border border-slate-700">${s.mode}</span></td>
+                    <td class="px-6 py-3.5 text-xs text-slate-400">${s.date}</td>
+                </tr>
+            `).join('');
+        }
+
+        function clearLeaderboard() {
+            localStorage.removeItem('typing_scores');
+            renderLeaderboard();
+            showToast("High scores cleared", "fa-trash-can");
+        }
+
+        /* ==========================================================================
+           PRACTICE MODULE DRILLS
+           ========================================================================== */
+        function setPracticeLevel(level) {
+            document.querySelectorAll('.level-btn').forEach(btn => btn.classList.remove('active'));
+            const btn = document.getElementById(`level-${level}`);
+            if (btn) btn.classList.add('active');
+            renderPracticeDrills(level);
+        }
+
+        function renderPracticeDrills(level) {
+            const grid = document.getElementById('practiceDrillGrid');
+            const drills = PRACTICE_DRILLS[level] || [];
+
+            grid.innerHTML = drills.map((drill, idx) => `
+                <div class="glass-panel p-6 rounded-2xl border border-slate-800 space-y-4 hover:border-indigo-500/50 transition">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-semibold px-2.5 py-1 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 uppercase tracking-wider">Drill 0${idx+1}</span>
+                        <i class="fa-solid fa-fire text-amber-400 text-xs"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">${drill.title}</h3>
+                    <p class="text-xs text-slate-400 leading-relaxed">${drill.desc}</p>
+                    <div class="p-3 bg-slate-900/90 rounded-xl font-mono text-xs text-slate-300 truncate border border-slate-800">
+                        "${drill.text}"
+                    </div>
+                    <button onclick="startPractice('${level}', ${idx})" class="w-full py-2.5 rounded-xl bg-slate-800 hover:bg-indigo-600 text-slate-200 hover:text-white font-semibold text-xs transition flex items-center justify-center space-x-1.5">
+                        <span>Load This Drill</span>
+                        <i class="fa-solid fa-play text-[10px]"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        function startPractice(level, index) {
+            const drill = PRACTICE_DRILLS[level][index];
+            state.textToType = drill.text;
+            state.mode = 'practice';
+            switchNav('test');
+            resetTest();
+            state.textToType = drill.text;
+            renderText();
+            showToast(`Loaded Drill: ${drill.title}`, "fa-bullseye");
+        }
+
+        /* ==========================================================================
+           DAILY CHALLENGE ENGINE
+           ========================================================================== */
+        function getDailySeed() {
+            const d = new Date();
+            return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+        }
+
+        function initDailyChallenge() {
+            const seed = getDailySeed();
+            document.getElementById('dailyDateStr').textContent = `Official Challenge - ${new Date().toLocaleDateString()}`;
+            
+            if (localStorage.getItem(`daily_done_${seed}`)) {
+                document.getElementById('dailyCompletedStatus').textContent = 'Completed Today! 🎉';
+                document.getElementById('dailyCompletedStatus').className = 'font-bold text-emerald-400';
+            }
+        }
+
+        function startDailyChallenge() {
+            const dailyText = "The daily challenge tests both consistency and composure under pressure. Precision in keystrokes guarantees steady improvement day after day.";
+            state.textToType = dailyText;
+            state.mode = 'daily';
+            switchNav('test');
+            resetTest();
+            state.textToType = dailyText;
+            renderText();
+            showToast("Daily Challenge Started!", "fa-calendar-star");
+        }
+
+        /* ==========================================================================
+           AUDIO & KEYBOARD VISUALIZER
+           ========================================================================= */
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            localStorage.setItem('typing_sound', state.soundEnabled);
+            updateSoundIcon();
+            showToast(state.soundEnabled ? "Keyboard Sound Enabled" : "Keyboard Sound Muted", state.soundEnabled ? "fa-volume-high" : "fa-volume-xmark");
+        }
+
+        function updateSoundIcon() {
+            const icon = document.getElementById('soundIcon');
+            icon.className = state.soundEnabled ? "fa-solid fa-volume-high text-indigo-400" : "fa-solid fa-volume-xmark text-slate-500";
+        }
+
+        function playKeyClickSound() {
+            if (!state.soundEnabled) return;
+            try {
+                if (!state.audioCtx) {
+                    state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                const osc = state.audioCtx.createOscillator();
+                const gain = state.audioCtx.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400 + Math.random() * 200, state.audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.03, state.audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, state.audioCtx.currentTime + 0.04);
+                
+                osc.connect(gain);
+                gain.connect(state.audioCtx.destination);
+                osc.start();
+                osc.stop(state.audioCtx.currentTime + 0.04);
+            } catch (e) {
+                // Browser audio policy catch
+            }
+        }
+
+        function handleGlobalKeyDown(e) {
+            // Virtual Keyboard highlight
+            const keyEl = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`) || document.querySelector(`.key[data-key="${e.key}"]`);
+            if (keyEl) keyEl.classList.add('active');
+
+            // Quick Hotkeys
+            if (e.key === 'Escape') {
+                closeResultsModal();
+            }
+            if (e.key === 'Enter' && e.shiftKey) {
+                resetTest();
+            }
+        }
+
+        function handleGlobalKeyUp(e) {
+            const keyEl = document.querySelector(`.key[data-key="${e.key.toLowerCase()}"]`) || document.querySelector(`.key[data-key="${e.key}"]`);
+            if (keyEl) keyEl.classList.remove('active');
+        }
+
+        /* ==========================================================================
+           THEME & UTILITY HELPERS
+           ========================================================================== */
+        function toggleTheme() {
+            const isDark = document.documentElement.classList.contains('dark');
+            const newTheme = isDark ? 'light' : 'dark';
+            applyTheme(newTheme);
+            localStorage.setItem('typing_theme', newTheme);
+        }
+
+        function applyTheme(theme) {
+            const themeIcon = document.getElementById('themeIcon');
+            if (theme === 'light') {
+                document.documentElement.classList.remove('dark');
+                document.documentElement.classList.add('light');
+                document.body.classList.replace('bg-navy-900', 'bg-slate-100');
+                document.body.classList.replace('text-slate-100', 'text-slate-900');
+                themeIcon.className = "fa-solid fa-sun text-amber-500";
+            } else {
+                document.documentElement.classList.remove('light');
+                document.documentElement.classList.add('dark');
+                document.body.classList.replace('bg-slate-100', 'bg-navy-900');
+                document.body.classList.replace('text-slate-900', 'text-slate-100');
+                themeIcon.className = "fa-solid fa-moon text-purple-400";
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen().catch(() => {});
+            }
+        }
+
+        function showToast(message, iconClass = "fa-circle-check") {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            document.getElementById('toastIcon').className = `fa-solid ${iconClass} text-emerald-400`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
+        }
+
+        /* ==========================================================================
+           PWA SERVICE WORKER & INSTALLATION
+           ========================================================================== */
+        let deferredPrompt;
+        function initPWA() {
+            window.addEventListener('beforeinstallprompt', (e) => {
+                e.preventDefault();
+                deferredPrompt = e;
+                const pwaBtn = document.getElementById('pwaInstallBtn');
+                if (pwaBtn) pwaBtn.classList.remove('hidden');
+            });
+
+            if ('serviceWorker' in navigator) {
+                // Register inline blob service worker for offline functionality
+                const swCode = `
+                    const CACHE_NAME = 'typing-test-v1';
+                    self.addEventListener('install', e => {
+                        e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(['./'])));
+                    });
+                    self.addEventListener('fetch', e => {
+                        e.respondWith(caches.match(e.request).then(res => res || fetch(e.request)));
+                    });
+                `;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                navigator.serviceWorker.register(swUrl).catch(() => {});
+            }
+        }
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        document.getElementById('pwaInstallBtn').classList.add('hidden');
+                    }
+                    deferredPrompt = null;
+                });
+            }
+        }
+    </script>
+
+    <!-- Inline Web App Manifest Structure -->
+    <script type="application/json" id="manifest-data">
+    {
+      "name": "Typing Test",
+      "short_name": "TypingTest",
+      "description": "Modern Minimalist Typing Speed & Accuracy Platform",
+      "start_url": "./",
+      "display": "standalone",
+      "background_color": "#070a12",
+      "theme_color": "#0b0f19",
+      "icons": [
+        {
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%230f172a'/><path d='M25 35h50v8H25zm0 14h50v8H25zm0 14h30v8H25z' fill='%236366f1'/></svg>",
+          "sizes": "192x192 512x512",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+    </script>
+</body>
+</html>
